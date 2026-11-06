@@ -1,0 +1,428 @@
+  <!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Step to Light Simulator</title>
+<meta name="description" content="Try the Step to Light kinetic footpath: tap the tiles, watch the lights brighten ahead, and run a full day of energy.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Public+Sans:wght@400;700&display=swap">
+<style>
+  :root {
+    --ink: #1B1B19;
+    --concrete: #E9E6DF;
+    --paper: #F7F5F0;
+    --line: #D6D1C5;
+    --yellow: #FFD21F;
+    --teal: #2E9C90;
+    --text: #45423B;
+    --text-dark: #CFCBC2;
+    --muted: #6B675E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--concrete);
+    color: var(--text);
+    font-family: 'Public Sans', Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+  h1, h2 { font-family: 'Oswald', 'Arial Narrow', sans-serif; text-transform: uppercase; margin: 0; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+  .stripe { height: 10px; background: repeating-linear-gradient(135deg, var(--yellow) 0 14px, var(--ink) 14px 28px); }
+  header { background: var(--ink); color: var(--text-dark); padding: 28px 0; }
+  header h1 { font-size: clamp(44px, 12vw, 76px); line-height: 1; color: #F3F0E8; }
+  .tagline { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 22px; color: var(--yellow); margin: 6px 0 10px; }
+  header p { margin: 0; }
+  main { padding: 20px 0 32px; }
+
+  .card { background: var(--paper); border: 1px solid var(--line); border-top: 6px solid var(--yellow); padding: 18px 16px; margin-bottom: 18px; }
+  .card h2 { font-size: 26px; color: var(--ink); }
+  .card > p { margin: 4px 0 14px; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  button, select {
+    font: inherit; font-weight: 700; font-size: 16px;
+    min-height: 48px; padding: 8px 16px;
+    border: 2px solid var(--ink); border-radius: 0;
+    background: var(--paper); color: var(--ink); cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .controls button, .controls select { flex: 1 1 140px; }
+  button.primary { background: var(--ink); color: var(--yellow); }
+  button:disabled { opacity: 0.5; }
+  button:focus-visible, select:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+
+  /* The path: left to right on wide screens, top to bottom on phones */
+  .scene {
+    display: grid; gap: 8px; padding: 14px; border-radius: 4px;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: "path path" "start finish";
+    transition: background 0.5s;
+  }
+  .scene.night { background: #11141C; color: var(--text-dark); }
+  .scene.day { background: #BFD9E6; color: var(--ink); }
+  .end { font-size: 14px; font-weight: 700; margin: 0; }
+  .end.start { grid-area: start; }
+  .end.finish { grid-area: finish; text-align: right; }
+  .path { grid-area: path; position: relative; display: flex; flex-direction: column; gap: 10px; }
+  .lights { display: flex; justify-content: space-around; }
+  .light { width: 30px; height: 14px; border-radius: 3px; background: #55524B; transition: background 0.25s, box-shadow 0.25s; }
+  .night .light { background: #8A7420; box-shadow: 0 0 10px rgba(255,210,31,0.35); }
+  .night .light.bright { background: var(--yellow); box-shadow: 0 0 26px 8px rgba(255,210,31,0.75); }
+  .tiles { display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(2, auto); gap: 4px; }
+  .tile {
+    aspect-ratio: 1; min-height: 0; padding: 0; border: none;
+    background: #8F8A7F; border-bottom: 4px solid #6B675E;
+    transition: transform 0.08s, background 0.2s;
+  }
+  .night .tile { background: #3A3934; border-bottom-color: #26251F; }
+  .tile.pressed { transform: translateY(3px); border-bottom-width: 1px; background: var(--yellow) !important; }
+  .walker { position: absolute; width: 20px; height: 20px; border-radius: 50%; background: var(--teal); border: 3px solid #fff; transform: translate(-50%, -50%); pointer-events: none; transition: left 0.4s linear, top 0.4s linear; }
+
+  @media (max-width: 600px) {
+    .scene { grid-template-columns: 1fr; grid-template-areas: "start" "path" "finish"; }
+    .end.finish { text-align: left; }
+    .path { flex-direction: row; }
+    .lights { flex-direction: column; }
+    .light { width: 14px; height: 30px; }
+    .tiles { flex: 1; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(10, auto); grid-auto-flow: column; }
+    .tile { aspect-ratio: 2.2 / 1; }
+  }
+
+  .screen { margin-top: 14px; background: var(--ink); color: var(--text-dark); padding: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .screen .title { grid-column: 1 / -1; font-size: 13px; font-weight: 700; letter-spacing: 2px; color: #A39E93; }
+  .label { font-size: 14px; }
+  .value { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 30px; color: var(--yellow); line-height: 1.1; }
+  .note { font-size: 15px; color: var(--muted); margin: 12px 0 0; }
+
+  /* Inside one tile */
+  .tile-svg { width: 100%; max-width: 460px; height: auto; display: block; margin: 0 auto 10px; }
+  #plate { transition: transform 0.12s; }
+  .pressed-svg #plate { transform: translateY(8px); }
+  #spark { opacity: 0; transition: opacity 0.1s; }
+  .pressed-svg #spark { opacity: 1; }
+  #pressBtn { width: 100%; }
+  ol { margin: 14px 0 0; padding-left: 22px; }
+  ol li { margin-bottom: 6px; }
+  ol b { color: var(--ink); }
+
+  /* Full day */
+  .chart { width: 100%; height: auto; display: block; background: var(--ink); }
+  .clock { font-family: 'Oswald', 'Arial Narrow', sans-serif; font-size: 20px; color: var(--ink); margin: 0 0 8px; }
+  .results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+  .stat { background: var(--ink); color: var(--text-dark); padding: 12px 14px; }
+  .stat.highlight { background: var(--yellow); color: var(--ink); }
+  .stat.highlight .value { color: var(--ink); }
+  .verdict { margin: 12px 0 0; padding: 12px 14px; background: var(--yellow); color: var(--ink); font-weight: 700; }
+  ul { margin: 4px 0 0; padding-left: 20px; }
+  ul li { margin-bottom: 6px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<header>
+  <div class="wrap">
+    <h1>Step to Light</h1>
+    <p class="tagline">Illuminating the path ahead</p>
+    <p>Kinetic tiles turn footsteps into electricity for footpath lights near Fairfield station. Try it below.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="card" aria-labelledby="walk-h">
+    <h2 id="walk-h">1. Walk the path</h2>
+    <p>Tap a tile to step on it. At night, the lights ahead of you brighten.</p>
+    <div class="controls">
+      <button id="nightBtn" aria-pressed="true">Switch to day</button>
+      <button id="walkerBtn" class="primary">Send a walker</button>
+    </div>
+    <div id="scene" class="scene night">
+      <p class="end start">Fairfield station</p>
+      <div class="path" id="path">
+        <div class="lights" id="lightsA"></div>
+        <div class="tiles" id="tiles" aria-label="20 kinetic tiles"></div>
+        <div class="lights" id="lightsB"></div>
+      </div>
+      <p class="end finish">Bus stops</p>
+    </div>
+    <div class="screen" aria-live="polite">
+      <div class="title">LIVE DISPLAY SCREEN</div>
+      <div><div class="label">Steps</div><div class="value" id="sSteps">0</div></div>
+      <div><div class="label">Energy made</div><div class="value" id="sEnergy">0 J</div></div>
+    </div>
+    <p class="note">Each step makes about 1-2.5 joules. That runs one dimmed light for only a second or two, so a solar panel does most of the charging.</p>
+  </section>
+
+  <section class="card" aria-labelledby="inside-h">
+    <h2 id="inside-h">2. Inside one tile</h2>
+    <p>Press the tile and watch what happens inside.</p>
+    <div id="svgWrap">
+      <svg class="tile-svg" viewBox="0 0 420 210" role="img" aria-label="Cross-section of one tile. When stepped on, the plate pushes magnets into copper coils, which makes electricity.">
+        <rect x="14" y="40" width="8" height="160" fill="#1B1B19"/>
+        <rect x="398" y="40" width="8" height="160" fill="#1B1B19"/>
+        <g id="plate">
+          <rect x="22" y="40" width="376" height="24" fill="#4A4842"/>
+          <rect x="22" y="64" width="376" height="12" fill="#9E998E"/>
+          <rect x="72" y="76" width="34" height="22" fill="#FFD21F" stroke="#1B1B19"/>
+          <rect x="314" y="76" width="34" height="22" fill="#FFD21F" stroke="#1B1B19"/>
+          <rect x="206" y="76" width="8" height="58" fill="#8F8A7F"/>
+        </g>
+        <rect x="62" y="106" width="54" height="40" rx="4" fill="#C77A35"/>
+        <rect x="304" y="106" width="54" height="40" rx="4" fill="#C77A35"/>
+        <ellipse cx="210" cy="144" rx="38" ry="8" fill="#2E9C90"/>
+        <polyline points="40,76 52,88 28,100 52,112 28,124 52,136 28,148 52,160 28,172 40,182" fill="none" stroke="#45423B" stroke-width="3"/>
+        <polyline points="380,76 392,88 368,100 392,112 368,124 392,136 368,148 392,160 368,172 380,182" fill="none" stroke="#45423B" stroke-width="3"/>
+        <rect x="22" y="182" width="376" height="18" fill="#9E998E"/>
+        <g id="spark">
+          <polyline points="89,150 80,170 96,168 86,192" fill="none" stroke="#FFD21F" stroke-width="4"/>
+          <polyline points="331,150 322,170 338,168 328,192" fill="none" stroke="#FFD21F" stroke-width="4"/>
+        </g>
+        <line x1="210" y1="4" x2="210" y2="28" stroke="#1B1B19" stroke-width="4"/>
+        <polygon points="200,24 220,24 210,38" fill="#1B1B19"/>
+      </svg>
+      <button id="pressBtn" class="primary">Press the tile</button>
+    </div>
+    <ol>
+      <li><b>Step:</b> the top plate moves down about 5 mm.</li>
+      <li><b>Generate:</b> magnets (yellow) drop into copper coils and make electricity.</li>
+      <li><b>Count:</b> the disc in the middle (teal) counts the step.</li>
+      <li><b>Store:</b> the electricity charges a 12 V battery.</li>
+      <li><b>Reset:</b> springs push the plate back up.</li>
+    </ol>
+  </section>
+
+  <section class="card" aria-labelledby="day-h">
+    <h2 id="day-h">3. Run a full day</h2>
+    <p>Speed through 24 hours: 20 tiles, about 20,000 steps, a 100 W solar panel and 8 lights.</p>
+    <div class="controls">
+      <select id="season" aria-label="Season">
+        <option value="summer">Summer</option>
+        <option value="winter">Winter</option>
+      </select>
+      <button id="runBtn" class="primary">Run a day</button>
+    </div>
+    <p class="clock" id="clock" aria-live="polite">Time: 00:00</p>
+    <svg class="chart" viewBox="0 0 600 220" role="img" aria-label="Chart of battery charge over the day">
+      <text x="12" y="20" fill="#A39E93" font-size="13" font-family="Arial">Battery charge (dark bands = night)</text>
+      <g id="nightBands"></g>
+      <line x1="40" y1="190" x2="590" y2="190" stroke="#55524B"/>
+      <line x1="40" y1="30" x2="40" y2="190" stroke="#55524B"/>
+      <text x="36" y="36" fill="#A39E93" font-size="13" text-anchor="end" font-family="Arial">100%</text>
+      <text x="36" y="194" fill="#A39E93" font-size="13" text-anchor="end" font-family="Arial">0%</text>
+      <text x="40" y="210" fill="#A39E93" font-size="13" font-family="Arial">12am</text>
+      <text x="315" y="210" fill="#A39E93" font-size="13" text-anchor="middle" font-family="Arial">12pm</text>
+      <text x="590" y="210" fill="#A39E93" font-size="13" text-anchor="end" font-family="Arial">12am</text>
+      <polyline id="line" fill="none" stroke="#FFD21F" stroke-width="3" points=""/>
+    </svg>
+    <div class="results">
+      <div class="stat"><div class="label">From tiles</div><div class="value" id="dTiles">-</div></div>
+      <div class="stat"><div class="label">From solar</div><div class="value" id="dSolar">-</div></div>
+      <div class="stat highlight"><div class="label">Used by lights</div><div class="value" id="dLights">-</div></div>
+      <div class="stat"><div class="label">Lowest battery</div><div class="value" id="dLow">-</div></div>
+    </div>
+    <p class="verdict" id="verdict" hidden></p>
+  </section>
+
+  <section class="card" aria-labelledby="num-h">
+    <h2 id="num-h">Our assumptions</h2>
+    <ul>
+      <li>Commercial tiles make 2-5 J per step. We assume ours makes half: 1-2.5 J.</li>
+      <li>About 4,000 people cross each day, 5 tile steps each.</li>
+      <li>8 lights, dimmed to 1 W all night. The 2 lights nearest a walker brighten to 5 W for about 10 seconds.</li>
+      <li>The solar panel gets 3 (winter) to 6 (summer) hours of full sun, with 30% losses.</li>
+      <li>The batteries hold about 143 Wh.</li>
+    </ul>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  const COLS = 10, LANES = 2, LIGHTS_PER_SIDE = 4;
+  const scene = document.getElementById('scene');
+  const path = document.getElementById('path');
+  const svgWrap = document.getElementById('svgWrap');
+  let night = true, steps = 0, joules = 0;
+  const lights = [];
+  const lanes = [[], []];
+
+  ['lightsA', 'lightsB'].forEach(id => {
+    const row = document.getElementById(id);
+    for (let i = 0; i < LIGHTS_PER_SIDE; i++) {
+      const el = document.createElement('div');
+      el.className = 'light';
+      row.appendChild(el);
+      lights.push({ el, index: i, timer: null });
+    }
+  });
+
+  const tilesEl = document.getElementById('tiles');
+  for (let lane = 0; lane < LANES; lane++) {
+    for (let c = 0; c < COLS; c++) {
+      const t = document.createElement('button');
+      t.className = 'tile';
+      t.setAttribute('aria-label', 'Tile ' + (lane * COLS + c + 1));
+      t.addEventListener('click', () => step(c, t));
+      tilesEl.appendChild(t);
+      lanes[lane].push(t);
+    }
+  }
+
+  function fmt(n, d) { return n.toLocaleString('en-AU', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+
+  function updateScreen() {
+    document.getElementById('sSteps').textContent = steps.toLocaleString('en-AU');
+    document.getElementById('sEnergy').textContent = fmt(joules, 1) + ' J';
+  }
+
+  function pressSvg() {
+    svgWrap.classList.add('pressed-svg');
+    setTimeout(() => svgWrap.classList.remove('pressed-svg'), 220);
+  }
+
+  // The light beside this tile and the next one along brighten
+  function brightenAhead(c) {
+    const here = Math.floor(c / (COLS / LIGHTS_PER_SIDE));
+    lights.forEach(l => {
+      if (l.index === here || l.index === here + 1) {
+        l.el.classList.add('bright');
+        clearTimeout(l.timer);
+        l.timer = setTimeout(() => l.el.classList.remove('bright'), 2500);
+      }
+    });
+  }
+
+  function step(c, tile) {
+    steps++;
+    joules += 1 + Math.random() * 1.5;
+    tile.classList.add('pressed');
+    setTimeout(() => tile.classList.remove('pressed'), 180);
+    pressSvg();
+    if (night) brightenAhead(c);
+    updateScreen();
+  }
+
+  const nightBtn = document.getElementById('nightBtn');
+  nightBtn.addEventListener('click', () => {
+    night = !night;
+    nightBtn.setAttribute('aria-pressed', String(night));
+    nightBtn.textContent = night ? 'Switch to day' : 'Switch to night';
+    scene.className = 'scene ' + (night ? 'night' : 'day');
+    if (!night) lights.forEach(l => l.el.classList.remove('bright'));
+  });
+
+  document.getElementById('pressBtn').addEventListener('click', () => {
+    steps++; joules += 1 + Math.random() * 1.5;
+    pressSvg(); updateScreen();
+  });
+
+  // A walker crosses the strip in one lane, stepping on 5 tiles
+  const walkerBtn = document.getElementById('walkerBtn');
+  walkerBtn.addEventListener('click', () => {
+    walkerBtn.disabled = true;
+    const lane = lanes[Math.random() < 0.5 ? 0 : 1];
+    const dot = document.createElement('div');
+    dot.className = 'walker';
+    path.appendChild(dot);
+    function place(tile) {
+      const r = tile.getBoundingClientRect(), p = path.getBoundingClientRect();
+      dot.style.left = (r.left - p.left + r.width / 2) + 'px';
+      dot.style.top = (r.top - p.top + r.height / 2) + 'px';
+    }
+    const stepCols = [];
+    for (let c = 0; c < COLS; c += 2) stepCols.push(c + (Math.random() < 0.5 ? 0 : 1));
+    place(lane[0]);
+    let k = 0;
+    const timer = setInterval(() => {
+      if (k >= stepCols.length) {
+        clearInterval(timer); dot.remove(); walkerBtn.disabled = false; return;
+      }
+      const c = stepCols[k++];
+      place(lane[c]);
+      step(c, lane[c]);
+    }, 500);
+  });
+
+  // ---------- Full day ----------
+  const BATTERY_WH = 143;
+  const SEASONS = {
+    summer: { sunrise: 6, sunset: 20, sunHours: 6 },
+    winter: { sunrise: 7, sunset: 17, sunHours: 3 }
+  };
+  // Share of the day's walkers in each hour (morning and evening peaks)
+  const HOURLY = [0.2,0.1,0.1,0.1,0.3,1.2,3.5,8,9,5.5,4.5,4.5,5,4.5,4.5,6.5,8.5,8.5,6,4.5,3.5,2.5,1.5,0.6];
+  const hourSum = HOURLY.reduce((a, b) => a + b, 0);
+
+  function simulateDay(key) {
+    const s = SEASONS[key];
+    const dayLen = s.sunset - s.sunrise;
+    const peakW = 100 * 0.7 * s.sunHours * Math.PI / (2 * dayLen);
+    const MIN = 1 / 60;
+    let battery = BATTERY_WH * 0.6, points = [];
+    let tileWh = 0, solarWh = 0, lightWh = 0, minPct = 1;
+    // Run two days and show the second, so the battery starts where a real day leaves it
+    for (let m = 0; m < 2 * 1440; m++) {
+      if (m === 1440) { points = []; tileWh = 0; solarWh = 0; lightWh = 0; minPct = 1; }
+      const mm = m % 1440, h = mm / 60;
+      const stepsNow = 20000 * (HOURLY[Math.floor(h)] / hourSum) / 60;
+      const tWh = stepsNow * (1 + Math.random() * 1.5) / 3600;
+      const sunUp = h >= s.sunrise && h < s.sunset;
+      const sWh = sunUp ? peakW * Math.sin(Math.PI * (h - s.sunrise) / dayLen) * MIN : 0;
+      const lWh = sunUp ? 0 : 8 * MIN + (stepsNow / 5) * 2 * 4 * (10 / 3600);
+      tileWh += tWh; solarWh += sWh; lightWh += lWh;
+      battery = Math.max(0, Math.min(BATTERY_WH, battery + tWh + sWh - lWh));
+      minPct = Math.min(minPct, battery / BATTERY_WH);
+      if (m >= 1440 && mm % 10 === 0) points.push({ h, pct: battery / BATTERY_WH });
+    }
+    points.push({ h: 24, pct: battery / BATTERY_WH });
+    return { s, points, tileWh, solarWh, lightWh, minPct };
+  }
+
+  const runBtn = document.getElementById('runBtn');
+  runBtn.addEventListener('click', () => {
+    const res = simulateDay(document.getElementById('season').value);
+    const x = h => 40 + (h / 24) * 550;
+    const y = p => 190 - p * 160;
+    document.getElementById('nightBands').innerHTML =
+      '<rect x="40" y="30" width="' + (x(res.s.sunrise) - 40) + '" height="160" fill="#2A2A26"/>' +
+      '<rect x="' + x(res.s.sunset) + '" y="30" width="' + (590 - x(res.s.sunset)) + '" height="160" fill="#2A2A26"/>';
+    const line = document.getElementById('line');
+    const clock = document.getElementById('clock');
+    ['dTiles', 'dSolar', 'dLights', 'dLow'].forEach(id => document.getElementById(id).textContent = '...');
+    document.getElementById('verdict').hidden = true;
+    runBtn.disabled = true;
+    let i = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? res.points.length : 1;
+    function frame() {
+      line.setAttribute('points', res.points.slice(0, i).map(p => x(p.h).toFixed(1) + ',' + y(p.pct).toFixed(1)).join(' '));
+      const h = res.points[Math.min(i, res.points.length) - 1].h;
+      clock.textContent = 'Time: ' + String(Math.floor(h) % 24).padStart(2, '0') + ':' + String(Math.round((h % 1) * 60)).padStart(2, '0');
+      if (i < res.points.length) { i += 2; requestAnimationFrame(frame); } else finish();
+    }
+    function finish() {
+      runBtn.disabled = false;
+      clock.textContent = 'Time: 24:00';
+      const low = Math.round(res.minPct * 100);
+      document.getElementById('dTiles').textContent = fmt(res.tileWh, 1) + ' Wh';
+      document.getElementById('dSolar').textContent = Math.round(res.solarWh) + ' Wh';
+      document.getElementById('dLights').textContent = Math.round(res.lightWh) + ' Wh';
+      document.getElementById('dLow').textContent = low + '%';
+      const share = Math.round(res.tileWh / res.lightWh * 100);
+      const v = document.getElementById('verdict');
+      v.textContent = 'The tiles made about ' + share + '% of what the lights used. Solar made the rest. ' +
+        (low >= 20 ? 'The lights stayed on all night.' : 'The lights stayed on, but only just. A bigger battery would be safer.');
+      v.hidden = false;
+    }
+    frame();
+  });
+
+  updateScreen();
+})();
+</script>
+</body>
+</html>
