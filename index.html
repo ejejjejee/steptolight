@@ -1,4 +1,4 @@
-  <!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -55,42 +55,76 @@
   button:disabled { opacity: 0.5; }
   button:focus-visible, select:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
 
-  /* The path: left to right on wide screens, top to bottom on phones */
-  .scene {
-    display: grid; gap: 8px; padding: 14px; border-radius: 4px;
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas: "path path" "start finish";
-    transition: background 0.5s;
+  /* ---------- Park scene ---------- */
+  .scene-wrap {
+    --grass:#8DB36A; --grass2:#7DA45B; --far:#6F9A7B; --leaf:#4E8A4A; --trunk:#6B4E32;
+    --path:#CFCABD; --edge:#9C978A; --tile:#A8A397; --tileEdge:#7C786E;
+    --cable:#7A5A36; --label:#1B1B19; --hub:#DAD7CD; --pole:#8C8F96;
+    --panel:#2F63A8; --panelgrid:#9CC0EA; --legs:#2B2B33; --bench:#7B5A3A;
+    border: 2px solid var(--ink); background: #BFD9E6; line-height: 0;
+    transition: background 0.6s;
   }
-  .scene.night { background: #11141C; color: var(--text-dark); }
-  .scene.day { background: #BFD9E6; color: var(--ink); }
-  .end { font-size: 14px; font-weight: 700; margin: 0; }
-  .end.start { grid-area: start; }
-  .end.finish { grid-area: finish; text-align: right; }
-  .path { grid-area: path; position: relative; display: flex; flex-direction: column; gap: 10px; }
-  .lights { display: flex; justify-content: space-around; }
-  .light { width: 30px; height: 14px; border-radius: 3px; background: #55524B; transition: background 0.25s, box-shadow 0.25s; }
-  .night .light { background: #8A7420; box-shadow: 0 0 10px rgba(255,210,31,0.35); }
-  .night .light.bright { background: var(--yellow); box-shadow: 0 0 26px 8px rgba(255,210,31,0.75); }
-  .tiles { display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(2, auto); gap: 4px; }
-  .tile {
-    aspect-ratio: 1; min-height: 0; padding: 0; border: none;
-    background: #8F8A7F; border-bottom: 4px solid #6B675E;
-    transition: transform 0.08s, background 0.2s;
+  .scene-wrap.tod-dusk {
+    --grass:#55704F; --grass2:#4A6445; --far:#3F4F5E; --leaf:#2F5236; --trunk:#3E2F22;
+    --path:#908C86; --edge:#625E58; --tile:#706C67; --tileEdge:#4E4B47;
+    --cable:#B08C62; --label:#F3E7D8; --hub:#8E909A; --pole:#5E6170;
+    --panel:#2A4478; --panelgrid:#6E8DC4; --legs:#3A3A48; --bench:#5A4330;
   }
-  .night .tile { background: #3A3934; border-bottom-color: #26251F; }
-  .tile.pressed { transform: translateY(3px); border-bottom-width: 1px; background: var(--yellow) !important; }
-  .walker { position: absolute; width: 20px; height: 20px; border-radius: 50%; background: var(--teal); border: 3px solid #fff; transform: translate(-50%, -50%); pointer-events: none; transition: left 0.4s linear, top 0.4s linear; }
-
-  @media (max-width: 600px) {
-    .scene { grid-template-columns: 1fr; grid-template-areas: "start" "path" "finish"; }
-    .end.finish { text-align: left; }
-    .path { flex-direction: row; }
-    .lights { flex-direction: column; }
-    .light { width: 14px; height: 30px; }
-    .tiles { flex: 1; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(10, auto); grid-auto-flow: column; }
-    .tile { aspect-ratio: 2.2 / 1; }
+  .scene-wrap.tod-night {
+    --grass:#1F2C26; --grass2:#18241F; --far:#141C26; --leaf:#16301F; --trunk:#1E1A16;
+    --path:#2D2C28; --edge:#1F1E1A; --tile:#3A3934; --tileEdge:#26251F;
+    --cable:#C7A06C; --label:#CFCBC2; --hub:#3D4150; --pole:#3B3E4B;
+    --panel:#1B2A4D; --panelgrid:#3F5788; --legs:#7C809A; --bench:#3A2E22;
   }
+  #sceneSvg { width: 100%; height: auto; display: block; }
+  #sceneSvg text { font-family: 'Public Sans', Arial, sans-serif; }
+  .sky { opacity: 0; transition: opacity 0.8s; }
+  .tod-day .sky-day, .tod-dusk .sky-dusk, .tod-night .sky-night { opacity: 1; }
+  .stars { opacity: 0; transition: opacity 0.8s; }
+  .tod-dusk .stars { opacity: 0.25; }
+  .tod-night .stars { opacity: 1; }
+  .sun { transition: transform 0.9s, opacity 0.9s; transform: translateY(0); }
+  .tod-dusk .sun { transform: translateY(104px); }
+  .tod-night .sun { transform: translateY(210px); opacity: 0; }
+  .moon { opacity: 0; transition: opacity 0.9s; }
+  .tod-night .moon { opacity: 1; }
+  .far { fill: var(--far); } .grass { fill: var(--grass); } .grass2 { fill: var(--grass2); }
+  .leaf { fill: var(--leaf); } .trunk { fill: var(--trunk); }
+  .pathbase { fill: var(--path); } .pathedge { fill: var(--edge); }
+  .far, .grass, .grass2, .leaf, .trunk, .pathbase, .pathedge, .tile, .hubbody, .pole, .panel { transition: fill 0.6s; }
+  .joint { stroke: var(--edge); stroke-width: 1.5; }
+  .bench { fill: var(--bench); }
+  .tile { fill: var(--tile); stroke: var(--tileEdge); stroke-width: 1.5; }
+  .tileg { cursor: pointer; transition: transform 0.08s; }
+  .tileg:focus-visible { outline: 3px solid var(--teal); outline-offset: 1px; }
+  .tileglow { fill: #FFD21F; opacity: 0; filter: url(#blur6); transition: opacity 0.25s; }
+  .tileg.on { transform: translateY(2px); }
+  .tileg.on .tile { fill: #FFD21F; stroke: #FFF3B0; }
+  .tileg.on .tileglow { opacity: 0.85; }
+  .cable { fill: none; stroke: var(--cable); stroke-width: 3; stroke-dasharray: 7 4; stroke-linecap: round; }
+  .cable.solid { stroke-dasharray: none; stroke-width: 3.5; }
+  .cable.thin { stroke-width: 2; }
+  .lbl { fill: var(--label); font-weight: 700; font-size: 14px; }
+  .hubbody { fill: var(--hub); stroke: #1B1B19; stroke-width: 3; }
+  .pole { fill: var(--pole); }
+  .panel { fill: var(--panel); stroke: #1B1B19; stroke-width: 2; }
+  .panelgrid { stroke: var(--panelgrid); stroke-width: 1; fill: none; }
+  .panelshine { fill: #fff; opacity: 0; transition: opacity 0.8s; }
+  .tod-day .panelshine { opacity: 0.4; }
+  .tod-dusk .panelshine { opacity: 0.12; }
+  .scr-l { fill: #A39E93; font-size: 12px; font-weight: 700; }
+  .scr-v { fill: #FFD21F; font-size: 12px; font-weight: 700; text-anchor: end; }
+  .led .ledbar { fill: #55524B; transition: fill 0.25s; }
+  .led .ledglow { fill: #FFD21F; opacity: 0; filter: url(#blur6); transition: opacity 0.25s; }
+  .led.dim .ledbar { fill: #B79A2B; }
+  .led.dim .ledglow { opacity: 0.3; }
+  .led.bright .ledbar { fill: #FFE56B; }
+  .led.bright .ledglow { opacity: 1; }
+  .leg { stroke: var(--legs); stroke-width: 4; stroke-linecap: round; }
+  .scene-caption { font-size: 14px; color: var(--muted); margin: 8px 0 0; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 0; font-size: 15px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--ink); display: inline-block; }
 
   .screen { margin-top: 14px; background: var(--ink); color: var(--text-dark); padding: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
   .screen .title { grid-column: 1 / -1; font-size: 13px; font-weight: 700; letter-spacing: 2px; color: #A39E93; }
@@ -137,26 +171,96 @@
 
   <section class="card" aria-labelledby="walk-h">
     <h2 id="walk-h">1. Walk the path</h2>
-    <p>Tap a tile to step on it. At night, the lights ahead of you brighten.</p>
+    <p>A park path in Fairfield, NSW. Every footstep on a tile lights the path ahead and sends power along the cable to the battery hub. The solar panel on the pole charges the hub too. You can also tap a tile to step on it yourself.</p>
     <div class="controls">
-      <button id="nightBtn" aria-pressed="true">Switch to day</button>
+      <select id="todSel" aria-label="Time of day">
+        <option value="day">Day</option>
+        <option value="dusk" selected>Dusk</option>
+        <option value="night">Night</option>
+      </select>
       <button id="walkerBtn" class="primary">Send a walker</button>
+      <button id="crowdBtn" aria-pressed="true">Crowd: on</button>
     </div>
-    <div id="scene" class="scene night">
-      <p class="end start">Fairfield station</p>
-      <div class="path" id="path">
-        <div class="lights" id="lightsA"></div>
-        <div class="tiles" id="tiles" aria-label="20 kinetic tiles"></div>
-        <div class="lights" id="lightsB"></div>
-      </div>
-      <p class="end finish">Bus stops</p>
+
+    <div id="scene" class="scene-wrap tod-dusk">
+      <svg id="sceneSvg" viewBox="0 0 840 480" role="img" aria-label="Animation of a park footpath in Fairfield. People walk along a path made of kinetic tiles. The tiles light up under their feet and the LED lights ahead of them brighten. Cables carry power from the tiles and from a solar panel on a pole to a battery hub beside the path. A screen on the hub shows live power in watts.">
+        <defs>
+          <linearGradient id="gDay" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8EC3E6"/><stop offset="1" stop-color="#DCEDF3"/></linearGradient>
+          <linearGradient id="gDusk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A2D5E"/><stop offset="0.55" stop-color="#B5547A"/><stop offset="1" stop-color="#F2A15B"/></linearGradient>
+          <linearGradient id="gNight" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070A14"/><stop offset="1" stop-color="#18223C"/></linearGradient>
+          <filter id="blur6" x="-50%" y="-100%" width="200%" height="300%"><feGaussianBlur stdDeviation="6"/></filter>
+          <filter id="blur10" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="10"/></filter>
+        </defs>
+
+        <rect class="sky sky-day" x="0" y="0" width="840" height="210" fill="url(#gDay)"/>
+        <rect class="sky sky-dusk" x="0" y="0" width="840" height="210" fill="url(#gDusk)"/>
+        <rect class="sky sky-night" x="0" y="0" width="840" height="210" fill="url(#gNight)"/>
+        <g class="stars" id="starsG"></g>
+        <g class="sun"><circle cx="110" cy="72" r="46" fill="#FFD21F" opacity="0.28" filter="url(#blur10)"/><circle cx="110" cy="72" r="22" fill="#FFE38A"/></g>
+        <g class="moon"><circle cx="640" cy="66" r="18" fill="#EDEBDD"/><circle cx="634" cy="60" r="3.5" fill="#CFCBB8"/><circle cx="646" cy="72" r="2.5" fill="#CFCBB8"/></g>
+        <g id="farTrees"></g>
+        <rect class="grass" x="0" y="196" width="840" height="284"/>
+        <rect class="grass2" x="0" y="360" width="840" height="120"/>
+        <g id="treesG"></g>
+        <g class="bench"><rect x="236" y="222" width="60" height="6" rx="1"/><rect x="236" y="210" width="60" height="5" rx="1"/><rect x="240" y="228" width="4" height="12"/><rect x="288" y="228" width="4" height="12"/><rect x="240" y="215" width="4" height="8"/><rect x="288" y="215" width="4" height="8"/></g>
+
+        <!-- Path -->
+        <rect class="pathbase" x="0" y="240" width="840" height="110"/>
+        <rect class="pathedge" x="0" y="240" width="840" height="12"/>
+        <rect class="pathedge" x="0" y="338" width="840" height="12"/>
+        <g id="jointsG"></g>
+
+        <!-- Cables (in conduit, below the path) -->
+        <g id="cablesG"></g>
+
+        <g id="tilesG"></g>
+        <g id="ledsG"></g>
+        <g id="walkLane0"></g>
+        <g id="walkLane1"></g>
+
+        <!-- Battery hub -->
+        <text class="lbl" x="575" y="428" text-anchor="end">Battery hub</text>
+        <text class="lbl" x="330" y="390" text-anchor="middle">12V cable in conduit</text>
+        <rect class="hubbody" x="585" y="384" width="150" height="86" rx="6"/>
+        <rect x="593" y="391" width="134" height="62" rx="3" fill="#0E1118"/>
+        <text class="scr-l" x="599" y="405">Steps</text><text class="scr-v" id="hubK" x="721" y="405">0.0 W</text>
+        <text class="scr-l" x="599" y="420">Solar</text><text class="scr-v" id="hubS" x="721" y="420">0.0 W</text>
+        <text class="scr-l" x="599" y="435">Total in</text><text class="scr-v" id="hubT" x="721" y="435">0.0 W</text>
+        <text class="scr-l" x="599" y="450">Battery</text><text class="scr-v" id="hubB" x="721" y="450" style="fill:#3FD6C6">60%</text>
+        <rect x="605" y="459" width="110" height="5" rx="2" fill="#2A2E3A"/>
+        <rect id="hubBar" x="605" y="459" width="66" height="5" rx="2" fill="#3FD6C6"/>
+
+        <!-- Solar pole and panel -->
+        <rect class="pole" x="793" y="124" width="6" height="346"/>
+        <line class="cable solid" x1="796" y1="124" x2="796" y2="440"/>
+        <line class="cable solid" x1="796" y1="440" x2="735" y2="440"/>
+        <g transform="translate(790 112) rotate(-12)">
+          <rect class="panel" x="-46" y="-17" width="92" height="34" rx="2"/>
+          <path class="panelgrid" d="M-23 -17V17M0 -17V17M23 -17V17M-46 0H46"/>
+          <rect class="panelshine" x="-46" y="-17" width="92" height="34" rx="2"/>
+        </g>
+        <text class="lbl" x="738" y="104" text-anchor="end">Solar panel (100 W)</text>
+        <text class="lbl" x="14" y="28">Park path, Fairfield NSW</text>
+
+        <g id="pulsesG"></g>
+      </svg>
     </div>
-    <div class="screen" aria-live="polite">
-      <div class="title">LIVE DISPLAY SCREEN</div>
-      <div><div class="label">Steps</div><div class="value" id="sSteps">0</div></div>
-      <div><div class="label">Energy made</div><div class="value" id="sEnergy">0 J</div></div>
+    <div class="legend" aria-hidden="true">
+      <span><i style="background:#FFD21F"></i>Power from steps</span>
+      <span><i style="background:#FF8A1F"></i>Power from the sun</span>
+      <span><i style="background:#3FD6C6"></i>Power to the lights</span>
     </div>
-    <p class="note">Each step makes about 1-2.5 joules. That runs one dimmed light for only a second or two, so a solar panel does most of the charging.</p>
+
+    <div class="screen" role="group" aria-label="Battery hub monitor">
+      <div class="title">BATTERY HUB MONITOR (LIVE)</div>
+      <div><div class="label">Steps</div><div class="value" id="mSteps">0</div></div>
+      <div><div class="label">From steps</div><div class="value" id="mKin">0.0 W</div></div>
+      <div><div class="label">From solar</div><div class="value" id="mSol">0.0 W</div></div>
+      <div><div class="label">Total in</div><div class="value" id="mIn">0.0 W</div></div>
+      <div><div class="label">Lights use</div><div class="value" id="mLights">0.0 W</div></div>
+      <div><div class="label">Battery</div><div class="value" id="mBat">0 Wh</div><div class="label" id="mBatPct">0% full</div></div>
+    </div>
+    <p class="note">Each step makes about 1-2.5 joules, so a busy path makes only a few watts at a time. The solar panel does most of the charging. At dusk the panel makes less, and at night it makes nothing, so the lights run on power stored in the battery.</p>
   </section>
 
   <section class="card" aria-labelledby="inside-h">
@@ -244,113 +348,278 @@
 
 <script>
 (function () {
-  const COLS = 10, LANES = 2, LIGHTS_PER_SIDE = 4;
-  const scene = document.getElementById('scene');
-  const path = document.getElementById('path');
-  const svgWrap = document.getElementById('svgWrap');
-  let night = true, steps = 0, joules = 0;
-  const lights = [];
-  const lanes = [[], []];
-
-  ['lightsA', 'lightsB'].forEach(id => {
-    const row = document.getElementById(id);
-    for (let i = 0; i < LIGHTS_PER_SIDE; i++) {
-      const el = document.createElement('div');
-      el.className = 'light';
-      row.appendChild(el);
-      lights.push({ el, index: i, timer: null });
-    }
-  });
-
-  const tilesEl = document.getElementById('tiles');
-  for (let lane = 0; lane < LANES; lane++) {
-    for (let c = 0; c < COLS; c++) {
-      const t = document.createElement('button');
-      t.className = 'tile';
-      t.setAttribute('aria-label', 'Tile ' + (lane * COLS + c + 1));
-      t.addEventListener('click', () => step(c, t));
-      tilesEl.appendChild(t);
-      lanes[lane].push(t);
-    }
+  const NS = 'http://www.w3.org/2000/svg';
+  const $ = id => document.getElementById(id);
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function el(name, attrs, parent) {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
   }
-
   function fmt(n, d) { return n.toLocaleString('en-AU', { minimumFractionDigits: d, maximumFractionDigits: d }); }
 
-  function updateScreen() {
-    document.getElementById('sSteps').textContent = steps.toLocaleString('en-AU');
-    document.getElementById('sEnergy').textContent = fmt(joules, 1) + ' J';
+  // ---------- Park scene ----------
+  const W = 840, COLS = 10, X0 = 73, PITCH = 70, TILE_W = 64, TILE_H = 36;
+  const LANE_Y = [256, 298], FEET_Y = [281, 323], STRIDE = 140;
+  const LIGHT_X = [160, 333, 507, 680];
+  const BATTERY_WH = 143, LIGHT_HOLD = 5000;
+  const sceneEl = $('scene');
+  const state = { tod: 'dusk', crowd: !reduceMotion, steps: 0, battery: BATTERY_WH * 0.6 };
+  const events = [];            // {t, j} tile energy in the last 2 s
+  const walkers = [], pulses = [], lights = [];
+  const tiles = [[], []];
+  const tileX = c => X0 + c * PITCH + TILE_W / 2;
+
+  // Static decoration
+  const starsG = $('starsG');
+  for (let i = 0; i < 34; i++) el('circle', { cx: (Math.random() * 820 + 10).toFixed(0), cy: (Math.random() * 130 + 8).toFixed(0), r: (Math.random() * 1.2 + 0.6).toFixed(1), fill: '#F3F0E8' }, starsG);
+  const farG = $('farTrees');
+  for (let x = -10; x < W + 40; x += 38) el('circle', { class: 'far', cx: x, cy: 196, r: 20 + ((x * 7) % 11) }, farG);
+  const treesG = $('treesG');
+  [60, 175, 350, 450, 575, 700].forEach(x => {
+    el('rect', { class: 'trunk', x: x - 4, y: 196, width: 8, height: 46 }, treesG);
+    el('circle', { class: 'leaf', cx: x, cy: 178, r: 30 }, treesG);
+    el('circle', { class: 'leaf', cx: x - 20, cy: 198, r: 22 }, treesG);
+    el('circle', { class: 'leaf', cx: x + 20, cy: 198, r: 22 }, treesG);
+  });
+  const jointsG = $('jointsG');
+  for (let x = 0; x <= W; x += 70) el('line', { class: 'joint', x1: x, y1: 252, x2: x, y2: 338 }, jointsG);
+
+  // Cables
+  const cablesG = $('cablesG');
+  const TRUNK_Y = 372, HUB_TILE_X = 660, FEED_Y = 360, FEED_X = 700, RISER_X = 10, TOP_FEED_Y = 234;
+  el('polyline', { class: 'cable', points: tileX(0) + ',' + TRUNK_Y + ' ' + tileX(COLS - 1) + ',' + TRUNK_Y }, cablesG);
+  el('polyline', { class: 'cable', points: HUB_TILE_X + ',' + TRUNK_Y + ' ' + HUB_TILE_X + ',384' }, cablesG);
+  for (let c = 0; c < COLS; c++) el('line', { class: 'cable thin', x1: tileX(c), y1: 274, x2: tileX(c), y2: TRUNK_Y }, cablesG);
+  el('polyline', { class: 'cable thin', points: FEED_X + ',384 ' + FEED_X + ',' + FEED_Y + ' ' + RISER_X + ',' + FEED_Y + ' ' + RISER_X + ',' + TOP_FEED_Y + ' ' + LIGHT_X[3] + ',' + TOP_FEED_Y }, cablesG);
+  LIGHT_X.forEach(x => {
+    el('line', { class: 'cable thin', x1: x, y1: 345, x2: x, y2: FEED_Y }, cablesG);
+    el('line', { class: 'cable thin', x1: x, y1: TOP_FEED_Y, x2: x, y2: 245 }, cablesG);
+  });
+
+  // Tiles
+  const tilesG = $('tilesG');
+  for (let lane = 0; lane < 2; lane++) {
+    for (let c = 0; c < COLS; c++) {
+      const x = X0 + c * PITCH, y = LANE_Y[lane];
+      const g = el('g', { class: 'tileg', tabindex: '0', role: 'button', 'aria-label': 'Tile ' + (lane * COLS + c + 1) }, tilesG);
+      el('rect', { class: 'tileglow', x: x - 3, y: y - 3, width: TILE_W + 6, height: TILE_H + 6, rx: 4 }, g);
+      el('rect', { class: 'tile', x, y, width: TILE_W, height: TILE_H, rx: 3 }, g);
+      g.addEventListener('click', () => stepTile(lane, c, 1));
+      g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); stepTile(lane, c, 1); } });
+      tiles[lane][c] = g;
+    }
   }
 
+  // LED lights: 4 on each side of the path
+  const ledsG = $('ledsG');
+  for (let row = 0; row < 2; row++) {
+    LIGHT_X.forEach(cx => {
+      const y = row === 0 ? 243 : 341;
+      const g = el('g', { class: 'led' }, ledsG);
+      el('rect', { class: 'ledglow', x: cx - 44, y: y - 10, width: 88, height: 26, rx: 8 }, g);
+      el('rect', { class: 'ledbar', x: cx - 34, y, width: 68, height: 6, rx: 3 }, g);
+      lights.push({ g, row, j: LIGHT_X.indexOf(cx), cx, until: 0, bright: false });
+    });
+  }
+
+  // ----- Energy pulses along the cables -----
+  function pathLen(pts) { let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return L; }
+  function addPulse(pts, color, speed) {
+    if (document.hidden) return;
+    const c = el('circle', { r: 5, fill: color, stroke: '#1B1B19', 'stroke-width': 1 }, $('pulsesG'));
+    pulses.push({ c, pts, len: pathLen(pts), d: 0, speed: speed || 240 });
+  }
+  function stepPath(lane, col) {
+    const x = tileX(col);
+    return [[x, lane === 0 ? 286 : 328], [x, TRUNK_Y], [HUB_TILE_X, TRUNK_Y], [HUB_TILE_X, 384]];
+  }
+  function lightPath(l) {
+    if (l.row === 1) return [[FEED_X, 384], [FEED_X, FEED_Y], [l.cx, FEED_Y], [l.cx, 346]];
+    return [[FEED_X, 384], [FEED_X, FEED_Y], [RISER_X, FEED_Y], [RISER_X, TOP_FEED_Y], [l.cx, TOP_FEED_Y], [l.cx, 246]];
+  }
+  const SOLAR_PATH = [[796, 124], [796, 440], [735, 440]];
+  function movePulses(dt) {
+    for (let i = pulses.length - 1; i >= 0; i--) {
+      const p = pulses[i];
+      p.d += p.speed * dt;
+      if (p.d >= p.len) { p.c.remove(); pulses.splice(i, 1); continue; }
+      let rem = p.d;
+      for (let k = 1; k < p.pts.length; k++) {
+        const a = p.pts[k - 1], b = p.pts[k], sl = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        if (rem <= sl) {
+          const f = sl ? rem / sl : 0;
+          p.c.setAttribute('cx', (a[0] + (b[0] - a[0]) * f).toFixed(1));
+          p.c.setAttribute('cy', (a[1] + (b[1] - a[1]) * f).toFixed(1));
+          break;
+        }
+        rem -= sl;
+      }
+    }
+  }
+
+  // ----- Steps -----
+  function countStep(j) {
+    state.steps++;
+    events.push({ t: performance.now(), j });
+  }
+  const lightsOn = () => state.tod !== 'day';
+  function brightenAhead(col, dir) {
+    const here = Math.min(3, Math.floor(col / 2.5));
+    const ahead = Math.min(3, Math.max(0, here + dir));
+    const now = performance.now();
+    lights.forEach(l => {
+      if (l.j === here || l.j === ahead) {
+        if (!(l.until > now)) addPulse(lightPath(l), '#3FD6C6', 300);
+        l.until = now + LIGHT_HOLD;
+      }
+    });
+  }
+  function stepTile(lane, col, dir) {
+    const j = 1 + Math.random() * 1.5;
+    countStep(j);
+    const g = tiles[lane][col];
+    g.classList.add('on');
+    setTimeout(() => g.classList.remove('on'), 420);
+    addPulse(stepPath(lane, col), '#FFD21F', 260);
+    if (lightsOn()) brightenAhead(col, dir);
+    pressSvg();
+  }
+
+  // ----- Walkers -----
+  const SHIRTS = ['#E4572E', '#2E9C90', '#F2A541', '#5B7DB1', '#B565A7', '#6BAA4F', '#E8E3D6'];
+  function spawnWalker(startX) {
+    const lane = Math.random() < 0.5 ? 0 : 1;
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    const shirt = SHIRTS[Math.floor(Math.random() * SHIRTS.length)];
+    const g = el('g', {}, $('walkLane' + lane));
+    const legA = el('line', { class: 'leg', x1: 0, y1: -14, x2: 0, y2: 0 }, g);
+    const legB = el('line', { class: 'leg', x1: 0, y1: -14, x2: 0, y2: 0 }, g);
+    const armA = el('line', { x1: 0, y1: -28, x2: 0, y2: -16, stroke: shirt, 'stroke-width': 3, 'stroke-linecap': 'round' }, g);
+    const armB = el('line', { x1: 0, y1: -28, x2: 0, y2: -16, stroke: shirt, 'stroke-width': 3, 'stroke-linecap': 'round' }, g);
+    el('line', { x1: 0, y1: -31, x2: 0, y2: -14, stroke: shirt, 'stroke-width': 9, 'stroke-linecap': 'round' }, g);
+    el('circle', { cx: 0, cy: -39, r: 5.5, fill: '#E0A878' }, g);
+    const w = {
+      g, legA, legB, armA, armB, lane, dir,
+      x: startX !== undefined ? startX : (dir > 0 ? -16 : W + 16),
+      speed: 48 + Math.random() * 30,
+      d: Math.random() * STRIDE
+    };
+    walkers.push(w);
+    return w;
+  }
+  function poseWalker(w) {
+    const th = Math.cos(Math.PI * w.d / STRIDE) * 0.6, s = Math.sin(th), c = Math.cos(th);
+    w.legA.setAttribute('x2', (15 * s).toFixed(1)); w.legA.setAttribute('y2', (-14 + 15 * c).toFixed(1));
+    w.legB.setAttribute('x2', (-15 * s).toFixed(1)); w.legB.setAttribute('y2', (-14 + 15 * c).toFixed(1));
+    w.armA.setAttribute('x2', (-10 * s).toFixed(1)); w.armB.setAttribute('x2', (10 * s).toFixed(1));
+    w.g.setAttribute('transform', 'translate(' + w.x.toFixed(1) + ' ' + FEET_Y[w.lane] + ')');
+  }
+  function moveWalkers(dt) {
+    for (let i = walkers.length - 1; i >= 0; i--) {
+      const w = walkers[i];
+      const before = Math.floor(w.d / STRIDE);
+      w.d += w.speed * dt;
+      w.x += w.dir * w.speed * dt;
+      if (Math.floor(w.d / STRIDE) > before && w.x >= X0 && w.x <= X0 + COLS * PITCH - (PITCH - TILE_W)) {
+        stepTile(w.lane, Math.min(COLS - 1, Math.floor((w.x - X0) / PITCH)), w.dir);
+      }
+      if (w.x < -30 || w.x > W + 30) { w.g.remove(); walkers.splice(i, 1); continue; }
+      poseWalker(w);
+    }
+  }
+  let nextSpawn = 0;
+  function crowdTick(now) {
+    if (!state.crowd || now < nextSpawn) return;
+    if (walkers.length < 8) spawnWalker();
+    nextSpawn = now + 1200 + Math.random() * 1800;
+  }
+
+  // ----- Live numbers -----
+  let monitorTimer = 0, last = performance.now();
+  function solarWatts(t) {
+    const base = state.tod === 'day' ? 63 : state.tod === 'dusk' ? 14 : 0;
+    return base * (1 + 0.03 * Math.sin(t / 1700));
+  }
+  function frame(now) {
+    const dt = Math.min(0.1, (now - last) / 1000);
+    last = now;
+    crowdTick(now);
+    moveWalkers(dt);
+    movePulses(dt);
+
+    // lights
+    let brightCount = 0;
+    lights.forEach(l => {
+      const on = lightsOn();
+      const bright = on && l.until > now;
+      if (bright) brightCount++;
+      l.g.setAttribute('class', 'led' + (on ? (bright ? ' bright' : ' dim') : ''));
+    });
+
+    // solar pulses
+    const sW = solarWatts(now);
+    if (sW > 0 && !document.hidden) {
+      const gap = sW > 40 ? 500 : 1500;
+      if (now - (frame.lastSolar || 0) > gap) { frame.lastSolar = now; addPulse(SOLAR_PATH, '#FF8A1F', 170); }
+    }
+
+    // energy
+    while (events.length && events[0].t < now - 2000) events.shift();
+    const kW = events.reduce((a, e) => a + e.j, 0) / 2;
+    const lW = lightsOn() ? 8 + 4 * brightCount : 0;
+    state.battery = Math.max(0, Math.min(BATTERY_WH, state.battery + (kW + sW - lW) * dt / 3600));
+
+    if (now - monitorTimer > 250) {
+      monitorTimer = now;
+      const pct = state.battery / BATTERY_WH * 100, tin = kW + sW;
+      $('hubK').textContent = fmt(kW, 1) + ' W';
+      $('hubS').textContent = fmt(sW, 1) + ' W';
+      $('hubT').textContent = fmt(tin, 1) + ' W';
+      $('hubB').textContent = fmt(pct, 1) + '%';
+      $('hubBar').setAttribute('width', (110 * pct / 100).toFixed(1));
+      $('mSteps').textContent = state.steps.toLocaleString('en-AU');
+      $('mKin').textContent = fmt(kW, 1) + ' W';
+      $('mSol').textContent = fmt(sW, 1) + ' W';
+      $('mIn').textContent = fmt(tin, 1) + ' W';
+      $('mLights').textContent = fmt(lW, 1) + ' W';
+      $('mBat').textContent = fmt(state.battery, 1) + ' Wh';
+      $('mBatPct').textContent = fmt(pct, 1) + '% full';
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // ----- Controls -----
+  $('todSel').addEventListener('change', e => {
+    state.tod = e.target.value;
+    sceneEl.className = 'scene-wrap tod-' + state.tod;
+  });
+  $('walkerBtn').addEventListener('click', () => spawnWalker());
+  const crowdBtn = $('crowdBtn');
+  function setCrowd(on) {
+    state.crowd = on;
+    crowdBtn.setAttribute('aria-pressed', String(on));
+    crowdBtn.textContent = 'Crowd: ' + (on ? 'on' : 'off');
+  }
+  crowdBtn.addEventListener('click', () => setCrowd(!state.crowd));
+  setCrowd(state.crowd);
+
+  // Start with a few people already on the path
+  if (!reduceMotion) { for (let i = 0; i < 4; i++) spawnWalker(80 + Math.random() * 680); }
+  else { spawnWalker(120); }
+  walkers.forEach(poseWalker);
+  requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
+
+  // ---------- Inside one tile ----------
+  const svgWrap = $('svgWrap');
   function pressSvg() {
     svgWrap.classList.add('pressed-svg');
     setTimeout(() => svgWrap.classList.remove('pressed-svg'), 220);
   }
-
-  // The light beside this tile and the next one along brighten
-  function brightenAhead(c) {
-    const here = Math.floor(c / (COLS / LIGHTS_PER_SIDE));
-    lights.forEach(l => {
-      if (l.index === here || l.index === here + 1) {
-        l.el.classList.add('bright');
-        clearTimeout(l.timer);
-        l.timer = setTimeout(() => l.el.classList.remove('bright'), 2500);
-      }
-    });
-  }
-
-  function step(c, tile) {
-    steps++;
-    joules += 1 + Math.random() * 1.5;
-    tile.classList.add('pressed');
-    setTimeout(() => tile.classList.remove('pressed'), 180);
-    pressSvg();
-    if (night) brightenAhead(c);
-    updateScreen();
-  }
-
-  const nightBtn = document.getElementById('nightBtn');
-  nightBtn.addEventListener('click', () => {
-    night = !night;
-    nightBtn.setAttribute('aria-pressed', String(night));
-    nightBtn.textContent = night ? 'Switch to day' : 'Switch to night';
-    scene.className = 'scene ' + (night ? 'night' : 'day');
-    if (!night) lights.forEach(l => l.el.classList.remove('bright'));
-  });
-
-  document.getElementById('pressBtn').addEventListener('click', () => {
-    steps++; joules += 1 + Math.random() * 1.5;
-    pressSvg(); updateScreen();
-  });
-
-  // A walker crosses the strip in one lane, stepping on 5 tiles
-  const walkerBtn = document.getElementById('walkerBtn');
-  walkerBtn.addEventListener('click', () => {
-    walkerBtn.disabled = true;
-    const lane = lanes[Math.random() < 0.5 ? 0 : 1];
-    const dot = document.createElement('div');
-    dot.className = 'walker';
-    path.appendChild(dot);
-    function place(tile) {
-      const r = tile.getBoundingClientRect(), p = path.getBoundingClientRect();
-      dot.style.left = (r.left - p.left + r.width / 2) + 'px';
-      dot.style.top = (r.top - p.top + r.height / 2) + 'px';
-    }
-    const stepCols = [];
-    for (let c = 0; c < COLS; c += 2) stepCols.push(c + (Math.random() < 0.5 ? 0 : 1));
-    place(lane[0]);
-    let k = 0;
-    const timer = setInterval(() => {
-      if (k >= stepCols.length) {
-        clearInterval(timer); dot.remove(); walkerBtn.disabled = false; return;
-      }
-      const c = stepCols[k++];
-      place(lane[c]);
-      step(c, lane[c]);
-    }, 500);
-  });
+  $('pressBtn').addEventListener('click', () => { countStep(1 + Math.random() * 1.5); pressSvg(); });
 
   // ---------- Full day ----------
-  const BATTERY_WH = 143;
   const SEASONS = {
     summer: { sunrise: 6, sunset: 20, sunHours: 6 },
     winter: { sunrise: 7, sunset: 17, sunHours: 3 }
@@ -421,7 +690,6 @@
     frame();
   });
 
-  updateScreen();
 })();
 </script>
 </body>
